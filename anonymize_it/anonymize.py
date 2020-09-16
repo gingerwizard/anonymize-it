@@ -1,6 +1,6 @@
 import sys
 import json
-from anonymizers import Anonymizer
+from anonymizers import Anonymizer, LazyAnonymizer, anonymizer_mapping
 from readers import reader_mapping
 from writers import writer_mapping
 import utils
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     writer = writer(config.dest['params'])
 
     logging.info("configuring anonymizer...")
-    anon = Anonymizer(reader=reader, writer=writer)
+    anon = anonymizer_mapping[config.anonymizer](reader=reader, writer=writer)
 
     logging.info("performing anonymization...")
     anon.anonymize(infer=True, include_rest=config.include_rest)

@@ -130,3 +130,37 @@ class Anonymizer:
             self.writer.write_data(tmp)
             count += len(tmp) / 2 # There is a bulk row for every document
             logging.info("{} % complete...".format(count/total * 100))
+
+
+class LazyAnonymizer(Anonymizer):
+    def __init__(self, reader=None, writer=None, field_maps={}):
+        super().__init__(reader, writer, field_maps)
+
+    def anonymize(self, infer=False, include_rest=True):
+        if infer:
+            self.reader.infer_providers()
+        self.field_maps = self.reader.create_mappings()
+        data = self.reader.get_data(list(self.field_maps.keys()), self.suppressed_fields, include_rest)
+        count = 0
+        for batchiter in utils.batch(data, 10000):
+            tmp = []
+            for item in batchiter:
+                item = utils.flatten_nest(item)
+                for field, v in item.items():
+                    if field in self.field_maps:
+                        if item[field] in self.field_maps[field]:
+                            item[field] = self.field_maps[field][item[field]]
+                        else:
+                            #lazily initialize the mapper
+                            mask_str = self.reader.masked_fields[field]
+                            mask = self.provider_map[mask_str]
+                            self.field_maps[field][item[field]] = mask()
+                            item[field] = self.field_maps[field][item[field]]
+                tmp.append(json.dumps(utils.flatten_nest(item)))
+            self.writer.write_data(tmp)
+            count += len(tmp)
+
+anonymizer_mapping = {
+    "default": Anonymizer,
+    "lazy": LazyAnonymizer
+}

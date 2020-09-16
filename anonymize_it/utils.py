@@ -29,6 +29,7 @@ def parse_config(config):
     masked_fields = config.get('include')
     suppressed_fields = config.get('exclude')
     include_rest = config.get('include_rest')
+    anonymizer = config.get('anonymizer')
 
     if not source:
         raise ConfigParserError("source error: source not defined. Please check config.")
@@ -46,8 +47,8 @@ def parse_config(config):
     if not writer_type:
         raise ConfigParserError("destination error: dest type not defined. Please check config.")
 
-    Config = collections.namedtuple('Config', 'source dest masked_fields suppressed_fields include_rest')
-    config = Config(source, dest, masked_fields, suppressed_fields, include_rest)
+    Config = collections.namedtuple('Config', 'anonymizer source dest masked_fields suppressed_fields include_rest')
+    config = Config(anonymizer, source, dest, masked_fields, suppressed_fields, include_rest)
     return config
 
 
@@ -55,8 +56,10 @@ def batch(iterable, size):
     sourceiter = iter(iterable)
     while True:
         batchiter = islice(sourceiter, size)
-        yield chain([next(batchiter)], batchiter)
-
+        try:
+            yield chain([next(batchiter)], batchiter)
+        except StopIteration:
+            pass
 
 def faker_examples():
     providers = []

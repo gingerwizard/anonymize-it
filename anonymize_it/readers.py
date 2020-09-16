@@ -1,8 +1,12 @@
+import glob
+import io
 from abc import ABCMeta, abstractmethod
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, A
 import getpass
-from . import utils
+
+from source import FileReader, JSONFileSetReader
+import utils
 import logging
 
 
@@ -161,6 +165,30 @@ class ESReader(BaseReader):
         print(self.masked_fields)
 
 
+class JSONFileReader(BaseReader):
+
+    def __init__(self, params, masked_fields, suppressed_fields):
+        super().__init__(params, masked_fields, suppressed_fields)
+        self.type = 'json_file_reader'
+        self.filepath = params.get('filepath')
+        logging.info("using files = {}".format(self.filepath))
+
+    def create_mappings(self):
+        logging.info("creating mappings...")
+        mappings = {}
+        for field, provider in self.masked_fields.items():
+            logging.info("getting values for {} using provider {}".format(field, provider))
+            mappings[field] = {}
+        logging.info("mappings completed...")
+        return mappings
+
+    def get_data(self, field_maps, suppressed_fields, include_all):
+        return JSONFileSetReader(glob.glob(self.filepath)).read()
+
+    def infer_providers(self):
+        pass
+
+
 class CSVReader(BaseReader):
     def __init__(self, params):
         super().__init__(params)
@@ -185,6 +213,7 @@ class PandasReader(BaseReader):
 
 reader_mapping = {
     "elasticsearch": ESReader,
+    "json_file_reader": JSONFileReader,
     "csv": CSVReader,
     "pandas": PandasReader
 }

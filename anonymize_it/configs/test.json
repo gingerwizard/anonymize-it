@@ -1,0 +1,21 @@
+{
+  "source": {
+    "type": "json_file_reader",
+    "params": {
+      "filepath": "/opt/anonymize-it/data/*.json"
+    }
+  },
+  "dest":{
+    "type": "filesystem",
+    "params": {
+      "directory": "../output"
+    }
+  },
+  "include": {
+    "log.file.path" : "file_path",
+    "source.ip": "ipv4"
+  },
+  "exclude": [],
+  "include_rest": true,
+  "anonymizer": "lazy"
+}

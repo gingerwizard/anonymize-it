@@ -1,6 +1,6 @@
 {
   "source": {
-    "type": "elasticsearch",
+    "type": "json_file_reader",
     "params": {
       "host": "host:port",
       "index": "you-index-pattern-*",
@@ -24,5 +24,6 @@
     "@timestamp": null
   },
   "exclude": [],
-  "include_rest": false
+  "include_rest": false,
+  "anonymizer": "lazy"
 }

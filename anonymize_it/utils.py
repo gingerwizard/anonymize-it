@@ -59,7 +59,7 @@ def batch(iterable, size):
         try:
             yield chain([next(batchiter)], batchiter)
         except StopIteration:
-            pass
+            return
 
 def faker_examples():
     providers = []

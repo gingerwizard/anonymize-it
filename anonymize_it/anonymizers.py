@@ -108,7 +108,7 @@ class Anonymizer:
         total = self.reader.get_count()
         logging.info("total number of records {}...".format(total))
 
-        data = self.reader.get_data(list(self.field_maps.keys()), self.suppressed_fields, include_rest)
+        data = self.reader.get_data(list(self.field_maps.keys()), self.reader.suppressed_fields, include_rest)
 
         # batch process the data and write out to json in chunks
         count = 0
@@ -140,23 +140,28 @@ class LazyAnonymizer(Anonymizer):
         if infer:
             self.reader.infer_providers()
         self.field_maps = self.reader.create_mappings()
-        data = self.reader.get_data(list(self.field_maps.keys()), self.suppressed_fields, include_rest)
+        data = self.reader.get_data(list(self.field_maps.keys()), self.reader.suppressed_fields, include_rest)
+        exclude = set(self.reader.suppressed_fields)
         count = 0
         for batchiter in utils.batch(data, 10000):
             tmp = []
             for item in batchiter:
                 item = utils.flatten_nest(item)
+                filtered_item = {}
                 for field, v in item.items():
-                    if field in self.field_maps:
-                        if item[field] in self.field_maps[field]:
-                            item[field] = self.field_maps[field][item[field]]
-                        else:
-                            #lazily initialize the mapper
-                            mask_str = self.reader.masked_fields[field]
-                            mask = self.provider_map[mask_str]
-                            self.field_maps[field][item[field]] = mask()
-                            item[field] = self.field_maps[field][item[field]]
-                tmp.append(json.dumps(utils.flatten_nest(item)))
+                    if not field in exclude:
+                        if field in self.field_maps:
+                            if item[field] in self.field_maps[field]:
+                                filtered_item[field] = self.field_maps[field][item[field]]
+                            else:
+                                #lazily initialize the mapper
+                                mask_str = self.reader.masked_fields[field]
+                                mask = self.provider_map[mask_str]
+                                self.field_maps[field][item[field]] = mask()
+                                filtered_item[field] = self.field_maps[field][item[field]]
+                        elif include_rest:
+                            filtered_item[field] = item[field]
+                tmp.append(json.dumps(utils.flatten_nest(filtered_item)))
             self.writer.write_data(tmp)
             count += len(tmp)
 

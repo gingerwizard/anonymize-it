@@ -39,3 +39,4 @@ if __name__ == "__main__":
 
     logging.info("performing anonymization...")
     anon.anonymize(infer=True, include_rest=config.include_rest)
+    logging.info("anonymization complete")

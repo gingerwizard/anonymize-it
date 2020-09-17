@@ -118,4 +118,3 @@ class JSONFileSetReader:
             else:
                 reader.close()
                 self._current_reader += 1
-        print()

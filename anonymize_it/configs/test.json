@@ -15,7 +15,7 @@
     "log.file.path" : "file_path",
     "source.ip": "ipv4"
   },
-  "exclude": [],
+  "exclude": ["user.name"],
   "include_rest": true,
   "anonymizer": "lazy"
 }

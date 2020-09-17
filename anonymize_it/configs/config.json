@@ -23,7 +23,7 @@
     "field.2": "ipv4",
     "@timestamp": null
   },
-  "exclude": [],
+  "exclude": ["user.name"],
   "include_rest": false,
   "anonymizer": "lazy"
 }

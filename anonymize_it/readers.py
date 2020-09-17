@@ -182,7 +182,7 @@ class JSONFileReader(BaseReader):
         logging.info("mappings completed...")
         return mappings
 
-    def get_data(self, field_maps, suppressed_fields, include_all):
+    def get_data(self, include, exclude, include_all):
         return JSONFileSetReader(glob.glob(self.filepath)).read()
 
     def infer_providers(self):

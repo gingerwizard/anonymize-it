@@ -8,7 +8,7 @@ import utils
 import json
 import logging
 
-from fakers import geo_point, geo_point_key
+from fakers import geo_point, geo_point_key, ipv4, file_path
 
 
 class AnonymizerError(Exception):
@@ -36,12 +36,11 @@ class Anonymizer:
         :param writer: an instantiated writer
         :param field_maps: a dict like {'field.name': 'mapping_type'}
         """
-        self.faker = Faker()
 
         # add provider mappings here. these should map strings from the config to Faker providers
         self.provider_map = {
-            "file_path": self.faker.file_path,
-            "ipv4": self.faker.ipv4,
+            "file_path": file_path,
+            "ipv4": ipv4,
             "geo_point": geo_point
         }
 

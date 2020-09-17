@@ -2,7 +2,7 @@
   "source": {
     "type": "json_file_reader",
     "params": {
-      "filepath": "/opt/anonymize-it/data/*.json"
+      "filepath": "/opt/anonymize-it/data/nginx/*.json"
     }
   },
   "dest":{
@@ -12,9 +12,10 @@
     }
   },
   "include": {
-    "log.file.path" : "file_path",
+    "source.address" : "ipv4",
     "source.ip": "ipv4",
-    "geo": "geo_point"
+    "related.ip": "ipv4",
+    "nginx.access.remote_ip_list": "ipv4"
   },
   "exclude": ["user.name"],
   "include_rest": true,

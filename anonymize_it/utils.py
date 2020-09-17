@@ -18,7 +18,6 @@ def flatten_nest(d, parent_key='', sep='.'):
             items.append((new_key, v))
     return dict(items)
 
-
 def parse_config(config):
     """first pass parsing of config file
 

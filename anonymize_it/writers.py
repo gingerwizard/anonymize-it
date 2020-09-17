@@ -1,5 +1,4 @@
 from abc import abstractmethod, ABCMeta
-import json
 import uuid
 import os
 
@@ -18,6 +17,18 @@ class BaseWriter(metaclass=ABCMeta):
 class ESWriter(BaseWriter):
     def __init__(self, params):
         super().__init__(params)
+
+
+# for tests only
+class MemoryWriter(BaseWriter):
+
+    def __init__(self, params):
+        super().__init__(params)
+        self.type = 'memory'
+        self.buffer = []
+
+    def write_data(self, data, file_name=None):
+        self.buffer = self.buffer + data
 
 
 class FSWriter(BaseWriter):
@@ -59,5 +70,6 @@ class GCSWriter(BaseWriter):
 writer_mapping = {
     "elasticsearch": ESWriter,
     "filesystem": FSWriter,
-    "gcs": GCSWriter
+    "gcs": GCSWriter,
+    "memory": MemoryWriter
 }

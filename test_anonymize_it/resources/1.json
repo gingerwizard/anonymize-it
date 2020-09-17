@@ -1,0 +1,2 @@
+{"log":{"file":{"path":"/var/log/auth.log"}},"host":{"hostname":"vagrant-VirtualBox"},"source":{"ip":"34.70.236.26"},"user":{"name":"packer"},"geo": {"country_iso_code": "US",  "location": { "lat": 37.751, "lon": -97.822 }, "continent_name": "North America"}}
+{"log":{"file":{"path":"/var/log/nginx/clients-ci.elastic.co.access.log"}},"host":{"hostname":"clients-ci-master-green"},"source":{"ip":"130.211.3.156"},"user":{"name":"-"},"geo": {"country_iso_code": "US",  "location": { "lat": 37.751, "lon": -97.822 }, "continent_name": "North America"}}

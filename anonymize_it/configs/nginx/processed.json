@@ -2,22 +2,23 @@
   "source": {
     "type": "json_file_reader",
     "params": {
-      "filepath": "/opt/anonymize-it/data/nginx/*.json"
+        "filepath": "../data/nginx/*.json"
     }
   },
   "dest":{
     "type": "filesystem",
     "params": {
-      "directory": "../output"
+      "directory": "../output/nginx"
     }
   },
   "include": {
     "source.address" : "ipv4",
     "source.ip": "ipv4",
     "related.ip": "ipv4",
-    "nginx.access.remote_ip_list": "ipv4"
+    "nginx.access.remote_ip_list": "ipv4",
+    "source.geo": "geo_point"
   },
-  "exclude": ["user.name"],
+  "exclude": ["related.user"],
   "include_rest": true,
   "anonymizer": "lazy"
 }

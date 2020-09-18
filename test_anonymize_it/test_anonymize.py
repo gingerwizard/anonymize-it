@@ -38,7 +38,10 @@ def test_anonymize_limit_fields():
         "log.file.path": "file_path",
         "source.ip": "ipv4",
         "geo": "geo_point",
-        "related.ip": "ipv4"
+        "related.ip": "ipv4",
+        "random.nest": "file_path",
+        "random": "file_path",
+        "another_field": "file_path"
     }, ["user.name"])
     writer = MemoryWriter({})
     anon = LazyAnonymizer(reader=reader, writer=writer)
@@ -59,3 +62,6 @@ def test_anonymize_limit_fields():
     assert doc["geo"]["continent_name"] == last_doc["geo"]["continent_name"]
     assert doc["geo"]["location"]["lat"] == last_doc["geo"]["location"]["lat"]
     assert doc["geo"]["location"]["lon"] == last_doc["geo"]["location"]["lon"]
+    assert not "random" in doc
+    assert not "another_field" in doc
+    #TODO: Add test where field to anon doesn't exist on root or leaf - make sure no keys created either way

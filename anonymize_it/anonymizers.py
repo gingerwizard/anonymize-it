@@ -204,12 +204,12 @@ class LazyAnonymizer(Anonymizer):
                     new_field.update({
                         field_path[0]: new_value
                     })
-            return new_field
         elif len(field_path):
             if field_path[0] in doc:
                 return {
                     field_path[0]: self.__anon_field_value(mask_str, doc[field_path[0]])
                 }
+        return new_field
 
     def __anon_doc_include_all(self, doc, mask_fields, exclude, sep='.'):
         for field, mask_str in mask_fields.items():

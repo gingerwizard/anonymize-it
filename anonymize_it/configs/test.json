@@ -14,7 +14,8 @@
   "include": {
     "log.file.path" : "file_path",
     "source.ip": "ipv4",
-    "geo": "geo_point"
+    "geo": "geo_point",
+    "related.ip": "ipv4"
   },
   "exclude": ["user.name"],
   "include_rest": true,

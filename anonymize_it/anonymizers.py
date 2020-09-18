@@ -149,10 +149,10 @@ class LazyAnonymizer(Anonymizer):
     def __generate_field_map_key(self):
         pass
 
-    def __delete_field(self, doc, field_path):
+    def __delete_field_in_place(self, doc, field_path):
         if len(field_path) > 1:
             if field_path[0] in doc and  isinstance(doc[field_path[0]], collections.MutableMapping):
-                deleted = self.__delete_field(doc[field_path[0]], field_path[1:])
+                deleted = self.__delete_field_in_place(doc[field_path[0]], field_path[1:])
                 if deleted:
                     #check for empty key
                     if not doc[field_path[0]]:
@@ -163,34 +163,77 @@ class LazyAnonymizer(Anonymizer):
                 del doc[field_path[0]]
                 return True
 
-    def __anon_field(self, doc, field_path, mask_str, field_map):
-        if len(field_path) > 1:
-            if field_path[0] in doc and isinstance(doc[field_path[0]], collections.MutableMapping):
-                self.__anon_field(doc[field_path[0]], field_path[1:], mask_str, field_map)
-        elif len(field_path) == 1:
-            if field_path[0] in doc:
-                mask_key = self.provider_key_function[mask_str](
-                    doc[field_path[0]]) if mask_str in self.provider_key_function else doc[field_path[0]]
-                if not mask_key in field_map:
-                    mask = self.provider_map[mask_str]
-                    field_map[mask_key] = mask()
-                doc[field_path[0]] = field_map[mask_key]
-
+    def __anon_field_value(self, mask_str, value):
+        field_map = self.field_maps[mask_str]
+        list = False
+        if mask_str in self.provider_key_function:
+            # we have a means of mapping this field to a key
+            mask_keys = self.provider_key_function[mask_str](value)
+        else:
+            if isinstance(value, collections.MutableSequence):
+                mask_keys = value
+                list = True
+            else:
+                mask_keys = [value]
+        mask = self.provider_map[mask_str]
+        masked_values = []
+        for mask_key in mask_keys:
+            if not mask_key in field_map:
+                field_map[mask_key] = mask()
+            masked_values.append(field_map[mask_key])
+        if not list:
+            return masked_values[0]
+        return masked_values
 
     # used when we want to keep most fields i.e. include_rest=True. Copying every field more expensive than modifying those that need to be changed
-    def __anon_doc_in_place(self, doc, mask_fields, exclude, sep='.'):
+    def __anon_field_in_place(self, doc, field_path, mask_str):
+        if len(field_path) > 1:
+            if field_path[0] in doc and isinstance(doc[field_path[0]], collections.MutableMapping):
+                self.__anon_field_in_place(doc[field_path[0]], field_path[1:], mask_str)
+        elif len(field_path) == 1:
+            if field_path[0] in doc:
+                doc[field_path[0]] = self.__anon_field_value(mask_str, doc[field_path[0]])
+
+    def __anon_field(self, doc, field_path, mask_str):
+        new_field = {}
+        if len(field_path) > 1:
+            if field_path[0] in doc and isinstance(doc[field_path[0]], collections.MutableMapping):
+                new_value = self.__anon_field(doc[field_path[0]], field_path[1:], mask_str)
+                # field may not exist, dont create empty entries
+                if not isinstance(new_value, collections.MutableMapping) or new_value:
+                    new_field.update({
+                        field_path[0]: new_value
+                    })
+            return new_field
+        elif len(field_path):
+            if field_path[0] in doc:
+                return {
+                    field_path[0]: self.__anon_field_value(mask_str, doc[field_path[0]])
+                }
+
+    def __anon_doc_include_all(self, doc, mask_fields, exclude, sep='.'):
         for field, mask_str in mask_fields.items():
             if not field in exclude:
-                #skip if we plan to remove
-                self.__anon_field(doc, field.split(sep), mask_str, self.field_maps[field])
+                # update doc in place as we want all the other fields
+                self.__anon_field_in_place(doc, field.split(sep), mask_str)
         for field in exclude:
-            self.__delete_field(doc, field.split(sep))
+            self.__delete_field_in_place(doc, field.split(sep))
         return doc
+
+    def __anon_doc(self, doc, mask_fields, exclude, sep='.'):
+        new_doc = {}
+        for field, mask_str in mask_fields.items():
+            if not field in exclude:
+                new_doc.update(self.__anon_field(doc, field.split(sep), mask_str))
+        for field in exclude:
+            self.__delete_field_in_place(new_doc, field.split(sep))
+        return new_doc
 
     def anonymize(self, infer=False, include_rest=True):
         if infer:
             self.reader.infer_providers()
-        self.field_maps = self.reader.create_mappings()
+        # rather than a map of values per field we create a map of values per type - this ensures fields are consistently mapped across fields in a document as well as across values
+        self.field_maps = {key: {} for key in self.provider_map.keys()}
         data = self.reader.get_data(list(self.field_maps.keys()), self.reader.suppressed_fields, include_rest)
         exclude = set(self.reader.suppressed_fields)
         count = 0
@@ -199,7 +242,10 @@ class LazyAnonymizer(Anonymizer):
         for batchiter in utils.batch(data, 100000):
             tmp = []
             for item in batchiter:
-                tmp.append(json.dumps(self.__anon_doc_in_place(item, self.reader.masked_fields, exclude)))
+                if include_rest:
+                    tmp.append(json.dumps(self.__anon_doc_include_all(item, self.reader.masked_fields, exclude)))
+                else:
+                    tmp.append(json.dumps(self.__anon_doc(item, self.reader.masked_fields, exclude)))
             self.writer.write_data(tmp, file_name=file_name % i)
             count += len(tmp)
             i += 1

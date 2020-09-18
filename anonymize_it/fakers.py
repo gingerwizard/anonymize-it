@@ -12,4 +12,4 @@ def geo_point():
     return {"country_iso_code": location[3],  "location": { "lat": location[0], "lon": location[1] }, "continent_name": location[4].split('/')[0]}
 
 def geo_point_key(doc):
-    return "%s:%s" % (doc["location"]["lat"], doc["location"]["lon"])
+    return ["%s:%s" % (doc["location"]["lat"], doc["location"]["lon"])]

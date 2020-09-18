@@ -25,10 +25,12 @@ class MemoryWriter(BaseWriter):
     def __init__(self, params):
         super().__init__(params)
         self.type = 'memory'
+        self.keep_buffer = params.get("keep", True)
         self.buffer = []
 
     def write_data(self, data, file_name=None):
-        self.buffer = self.buffer + data
+        if self.keep_buffer:
+            self.buffer = self.buffer + data
 
 
 class FSWriter(BaseWriter):

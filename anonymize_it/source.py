@@ -114,7 +114,12 @@ class JSONFileSetReader:
             reader = self.readers[self._current_reader]
             doc = next(reader)
             if doc:
-                yield json.loads(doc)
+                try:
+                    doc = json.loads(doc)
+                    yield doc
+                except json.decoder.JSONDecodeError:
+                    logging.error("Failed to decode document")
             else:
+                logging.info(f"Completed file {reader.file_name}")
                 reader.close()
                 self._current_reader += 1

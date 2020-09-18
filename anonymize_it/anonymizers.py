@@ -250,6 +250,7 @@ class LazyAnonymizer(Anonymizer):
                     tmp.append(json.dumps(self.__anon_doc(item, self.reader.masked_fields, exclude)))
             self.writer.write_data(tmp, file_name=file_name % i)
             count += len(tmp)
+            logging.info(f"{count} documents complete")
             i += 1
 
 anonymizer_mapping = {

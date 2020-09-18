@@ -164,6 +164,8 @@ class LazyAnonymizer(Anonymizer):
                 return True
 
     def __anon_field_value(self, mask_str, value):
+        if not mask_str:
+            return value
         field_map = self.field_maps[mask_str]
         list = False
         if mask_str in self.provider_key_function:

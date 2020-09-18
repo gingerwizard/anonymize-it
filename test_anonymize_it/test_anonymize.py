@@ -11,7 +11,8 @@ def test_anonymize_include_rest():
         "log.file.path": "file_path",
         "source.ip": "ipv4",
         "geo": "geo_point",
-        "related.ip": "ipv4"
+        "related.ip": "ipv4",
+        "@timestamp": None
     }, ["user.name"])
     writer = MemoryWriter({})
     anon = LazyAnonymizer(reader=reader, writer=writer)
@@ -22,6 +23,7 @@ def test_anonymize_include_rest():
     assert doc["log"]["file"]["path"] != "/var/log/auth.log"
     assert doc["host"]["hostname"] == "vagrant-VirtualBox"
     assert doc["source"]["ip"] != "34.70.236.26"
+    assert doc["@timestamp"] == "2020-08-16T18:09:13.000Z"
     assert not "user" in doc
     assert isinstance(doc["related"]["ip"], collections.MutableSequence)
     assert doc["related"]["user"] == ["0.397"]
@@ -41,7 +43,9 @@ def test_anonymize_limit_fields():
         "related.ip": "ipv4",
         "random.nest": "file_path",
         "random": "file_path",
-        "another_field": "file_path"
+        "another_field": "file_path",
+        "user.name": "file_path",
+        "@timestamp": None
     }, ["user.name"])
     writer = MemoryWriter({})
     anon = LazyAnonymizer(reader=reader, writer=writer)
@@ -64,4 +68,4 @@ def test_anonymize_limit_fields():
     assert doc["geo"]["location"]["lon"] == last_doc["geo"]["location"]["lon"]
     assert not "random" in doc
     assert not "another_field" in doc
-    #TODO: Add test where field to anon doesn't exist on root or leaf - make sure no keys created either way
+    assert doc["@timestamp"] == "2020-08-16T18:09:13.000Z"

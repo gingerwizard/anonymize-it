@@ -8,7 +8,7 @@ import utils
 import json
 import logging
 
-from fakers import geo_point, geo_point_key, ipv4, file_path
+from fakers import geo_point, geo_point_key, ipv4, file_path, message, message_key
 
 
 class AnonymizerError(Exception):
@@ -41,11 +41,13 @@ class Anonymizer:
         self.provider_map = {
             "file_path": file_path,
             "ipv4": ipv4,
-            "geo_point": geo_point
+            "geo_point": geo_point,
+            "message": message
         }
 
         self.provider_key_function = {
-            "geo_point": geo_point_key
+            "geo_point": geo_point_key,
+            "message": message_key
         }
 
         self.field_maps = field_maps
@@ -111,7 +113,7 @@ class Anonymizer:
                 mask_str = self.reader.masked_fields[field]
                 if mask_str != 'infer':
                     mask = self.provider_map[mask_str]
-                    map[value] = mask()
+                    map[value] = mask(value)
 
         # get generator object from reader
         total = self.reader.get_count()
@@ -180,9 +182,12 @@ class LazyAnonymizer(Anonymizer):
         mask = self.provider_map[mask_str]
         masked_values = []
         for mask_key in mask_keys:
-            if not mask_key in field_map:
-                field_map[mask_key] = mask()
-            masked_values.append(field_map[mask_key])
+            if mask_key:
+                if not mask_key in field_map:
+                    field_map[mask_key] = mask(value)
+                masked_values.append(field_map[mask_key])
+            else:
+                masked_values.append(mask(value))
         if not list:
             return masked_values[0]
         return masked_values

@@ -12,6 +12,7 @@ def test_anonymize_include_rest():
         "source.ip": "ipv4",
         "geo": "geo_point",
         "related.ip": "ipv4",
+        "message": "message",
         "@timestamp": None
     }, ["user.name"])
     writer = MemoryWriter({})
@@ -23,6 +24,7 @@ def test_anonymize_include_rest():
     assert doc["log"]["file"]["path"] != "/var/log/auth.log"
     assert doc["host"]["hostname"] == "vagrant-VirtualBox"
     assert doc["source"]["ip"] != "34.70.236.26"
+    assert doc["message"] != "This has an ip of 12.12.12.44 and 12.112.13.324 which will be replaced"
     assert doc["@timestamp"] == "2020-08-16T18:09:13.000Z"
     assert not "user" in doc
     assert isinstance(doc["related"]["ip"], collections.MutableSequence)

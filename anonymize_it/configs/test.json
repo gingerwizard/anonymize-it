@@ -2,7 +2,7 @@
   "source": {
     "type": "json_file_reader",
     "params": {
-      "filepath": "../../data/*.json"
+      "filepath": "../data/*.json"
     }
   },
   "dest":{

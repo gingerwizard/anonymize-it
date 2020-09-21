@@ -13,13 +13,14 @@ def test_anonymize_include_rest():
         "geo": "geo_point",
         "related.ip": "ipv4",
         "message": "message",
-        "@timestamp": None
+        "@timestamp": None,
+        "kubernetes.namespace": "service"
     }, ["user.name"])
     writer = MemoryWriter({})
     anon = LazyAnonymizer(reader=reader, writer=writer)
     anon.anonymize(infer=True, include_rest=True)
 
-    assert len(writer.buffer) == 4
+    assert len(writer.buffer) == 5
     doc = json.loads(writer.buffer[0])
     assert doc["log"]["file"]["path"] != "/var/log/auth.log"
     assert doc["host"]["hostname"] == "vagrant-VirtualBox"
@@ -30,6 +31,8 @@ def test_anonymize_include_rest():
     assert isinstance(doc["related"]["ip"], collections.MutableSequence)
     assert doc["related"]["user"] == ["0.397"]
     assert doc["source"]["ip"] == doc["related"]["ip"][0]
+    k8_doc = json.loads(writer.buffer[1])
+    assert k8_doc["kubernetes"]["namespace"] != "workplace-search-kyko-ren"
     last_doc = json.loads(writer.buffer[-1])
     assert doc["source"]["ip"] == last_doc["source"]["ip"]
     assert doc["geo"]["country_iso_code"] == last_doc["geo"]["country_iso_code"]
@@ -47,13 +50,14 @@ def test_anonymize_limit_fields():
         "random": "file_path",
         "another_field": "file_path",
         "user.name": "file_path",
-        "@timestamp": None
+        "@timestamp": None,
+        "kubernetes.namespace": "service"
     }, ["user.name"])
     writer = MemoryWriter({})
     anon = LazyAnonymizer(reader=reader, writer=writer)
     anon.anonymize(infer=True, include_rest=False)
 
-    assert len(writer.buffer) == 4
+    assert len(writer.buffer) == 5
     doc = json.loads(writer.buffer[0])
     assert doc["log"]["file"]["path"] != "/var/log/auth.log"
     assert not "host" in doc

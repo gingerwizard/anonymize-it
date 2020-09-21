@@ -1,0 +1,26 @@
+{
+  "source": {
+    "type": "json_file_reader",
+    "params": {
+        "filepath": "../data/application_logs/eden/*.json"
+    }
+  },
+  "dest":{
+    "type": "filesystem",
+    "params": {
+      "directory": "../output/application_logs/eden/"
+    }
+  },
+  "include": {
+    "kubernetes.namespace": "service",
+    "message": "message",
+    "source.address" : "ipv4",
+    "source.ip": "ipv4",
+    "related.ip": "ipv4",
+    "nginx.access.remote_ip_list": "ipv4",
+    "source.geo": "geo_point"
+  },
+  "exclude": ["related.user"],
+  "include_rest": true,
+  "anonymizer": "lazy"
+}

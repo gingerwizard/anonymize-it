@@ -1,5 +1,5 @@
 import glob
-import io
+from natsort import natsorted
 from abc import ABCMeta, abstractmethod
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search, A
@@ -183,7 +183,7 @@ class JSONFileReader(BaseReader):
         return mappings
 
     def get_data(self, include, exclude, include_all):
-        return JSONFileSetReader(glob.glob(self.filepath)).read()
+        return JSONFileSetReader(natsorted(glob.glob(self.filepath))).read()
 
     def infer_providers(self):
         pass

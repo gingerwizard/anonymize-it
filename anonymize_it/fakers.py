@@ -31,3 +31,6 @@ def message(value):
 
 def service_name(value):
     return faker.microservice()
+
+def username(value):
+    return faker.profile(fields=["username"])["username"]

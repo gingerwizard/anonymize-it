@@ -49,10 +49,10 @@ def test_anonymize_limit_fields():
         "random.nest": "file_path",
         "random": "file_path",
         "another_field": "file_path",
-        "user.name": "file_path",
+        "user.name": "username",
         "@timestamp": None,
         "kubernetes.namespace": "service"
-    }, ["user.name"])
+    },[])
     writer = MemoryWriter({})
     anon = LazyAnonymizer(reader=reader, writer=writer)
     anon.anonymize(infer=True, include_rest=False)
@@ -62,7 +62,7 @@ def test_anonymize_limit_fields():
     assert doc["log"]["file"]["path"] != "/var/log/auth.log"
     assert not "host" in doc
     assert doc["source"]["ip"] != "34.70.236.26"
-    assert not "user" in doc
+    assert doc["user"]["name"] != "random-user"
     assert isinstance(doc["related"]["ip"], collections.MutableSequence)
     assert not "user" in doc["related"]
     assert doc["source"]["ip"] == doc["related"]["ip"][0]
@@ -72,6 +72,7 @@ def test_anonymize_limit_fields():
     assert doc["geo"]["continent_name"] == last_doc["geo"]["continent_name"]
     assert doc["geo"]["location"]["lat"] == last_doc["geo"]["location"]["lat"]
     assert doc["geo"]["location"]["lon"] == last_doc["geo"]["location"]["lon"]
+    assert doc["user"]["name"] == last_doc["user"]["name"]
     assert not "random" in doc
     assert not "another_field" in doc
     assert doc["@timestamp"] == "2020-08-16T18:09:13.000Z"

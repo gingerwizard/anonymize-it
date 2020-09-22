@@ -8,7 +8,7 @@ import utils
 import json
 import logging
 
-from fakers import geo_point, geo_point_key, ipv4, file_path, message, message_key, service_name
+from fakers import geo_point, geo_point_key, ipv4, file_path, message, message_key, service_name, username
 
 
 class AnonymizerError(Exception):
@@ -43,7 +43,8 @@ class Anonymizer:
             "ipv4": ipv4,
             "geo_point": geo_point,
             "message": message,
-            "service": service_name
+            "service": service_name,
+            "username": username
         }
 
         self.provider_key_function = {
